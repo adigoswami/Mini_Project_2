@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 def distance(x1 , y1 , x2 , y2): 
     # Calculating distance 
@@ -90,11 +91,13 @@ def T_F_DTU(vertex_ai, vertex_aj, vertex_bi, ki, ki_dash, kj):
         return cost
 
 def main():
+    C_lower = 100
+    C_upper = 1001
     coord = [[195,340], [236,373], [299,314],[267,351],[248,298],[296,333],[274,276],[317,313],[299,252],[354,292],[330,229],[378,268],[427,409],[415,635],[457,436],[453,622],[495,459],[497,601],[538,485],[540,579],[579,516],[581,563],[530,434],[1035,140],[575,463],[1072,176]]
     #print(coord)
     vertices = []
     edge_costs = {}
-
+    
     b_cells = [[195,340,236,373], [299,314,267,351],[248,298,296,333],[274,276,317,313],[299,252,354,292],[330,229,378,268],[427,409,415,635],[457,436,453,622],[495,459,497,601],[538,485,540,579],[579,516,581,563],[530,434,1035,140],[575,463,1072,176] ]
 
     for cell in b_cells:
@@ -104,9 +107,9 @@ def main():
             if point == temp1 or point == temp2:
                 continue
             
-            for i in range(10,101,10):
-                for j in range(10,101,10):
-                    for k in range(10,101,10):
+            for i in range(C_lower,C_upper,100):
+                for j in range(C_lower,C_upper,100):
+                    for k in range(C_lower,C_upper,100):
 
                         cost1 = T_F_F(temp1, point, temp2, i, k)
                         cost2 = T_F_FDU(temp1, point, temp2, i, k)
@@ -121,7 +124,7 @@ def main():
                         
                         # if cost != 999999:
                         start = temp1 + [i]
-                        #middle = temp2 + [j]
+                        middle = temp2 + [j]
                         end = point + [k]
                         #print(start,end, temp2+[j])
                         if start not in vertices:
@@ -137,16 +140,16 @@ def main():
                         #print((index1,index3))
                         #print(list(edge_costs.keys()))
                         if (index1,index3) not in edge_costs:
-                            edge_costs[(index1,index3)] = [cost, flag]
+                            edge_costs[(index1,index3)] = [[cost, flag], middle]
                         else:
-                            previous = edge_costs[(index1,index3)]
+                            previous = edge_costs[(index1,index3)][0]
                             if cost < previous[0]:
-                                edge_costs[(index1,index3)] = [cost, flag]
+                                edge_costs[(index1,index3)] = [[cost, flag], middle]
                             
             
-            for i in range(10,101,10):
-                for j in range(10,101,10):
-                    for k in range(10,101,10):
+            for i in range(C_lower,C_upper,100):
+                for j in range(C_lower,C_upper,100):
+                    for k in range(C_lower,C_upper,100):
 
                         cost1 = T_F_F(temp2, point, temp1, i, k)
                         cost2 = T_F_FDU(temp2, point, temp1, i, k)
@@ -162,7 +165,7 @@ def main():
                         #print(cost)
                         # if cost != 999999:
                         start = temp2 + [i]
-                        #middle = temp1 + [j]
+                        middle = temp1 + [j]
                         end = point + [k]
                         if start not in vertices:
                             vertices.append(start)
@@ -174,17 +177,82 @@ def main():
                         #index2 = vertices.index(middle)
                         index3 = vertices.index(end)
                         if (index1,index3) not in edge_costs:
-                            edge_costs[(index1,index3)] = [cost, flag]
+                            edge_costs[(index1,index3)] = [[cost, flag], middle]
                         else:
-                            previous = edge_costs[(index1,index3)]
+                            previous = edge_costs[(index1,index3)][0]
                             if cost < previous[0]:
-                                edge_costs[(index1,index3)] = [cost, flag]
+                                edge_costs[(index1,index3)] = [[cost, flag], middle]
+
 
     # print(len(vertices))
-    print(len(list(edge_costs.keys())))
-    # print(vertices)
+    #print(len(list(edge_costs.keys())))
+    #print(vertices)
     #print(edge_costs)
+    #print(edge_costs[(0, 21)])
+    #print(vertices[20], vertices[0])
+    matrix = np.zeros((260, 260))
+    for i in range(260):
+        for j in range(260):
+            if i == j:
+                matrix[i][j] = 999999
+            elif vertices[i][0] == vertices[j][0] and vertices[i][1] == vertices[j][1]:
+                matrix[i][j] = 999999
+            elif [vertices[i][0], vertices[i][1], vertices[j][0], vertices[j][1]] in b_cells:
+                matrix[i][j] = distance(vertices[i][0], vertices[i][1], vertices[j][0], vertices[j][1])
+            elif [vertices[j][0], vertices[j][1], vertices[i][0], vertices[i][1]] in b_cells:
+                matrix[i][j] = distance(vertices[i][0], vertices[i][1], vertices[j][0], vertices[j][1])
+            else:
+                matrix[i][j] = edge_costs[(i, j)][0][0]
 
+    f = open('Matrix.txt', 'w')
+    for i in range(260):
+        for j in range(260):
+            f.write(str(int(matrix[i][j])))
+            if j != 259:
+                f.write(' ')
+        # f.write('-1')
+        f.write('\n')
+    f.close()
+
+    cluster = []
+    for cell in b_cells:
+        l1 = []
+        for i in range(C_lower, C_upper, 100):
+            temp1 = [cell[0], cell[1]] + [i]
+            temp2 = [cell[2], cell[3]] + [i]
+            l1.append(vertices.index(temp1))
+            l1.append(vertices.index(temp2))
+        cluster.append(l1)
+
+    count = 1
+    f = open('Cluster.txt', 'w')
+    for clus in cluster:
+        f.write(str(count))
+        f.write(' ')
+        for i in clus:
+            f.write(str(i+1))
+            f.write(' ')
+        f.write('-1')
+        f.write('\n')
+        count += 1
+    f.close()
+
+    f = open('Classes.txt', 'w')
+    for key in edge_costs:
+        f.write(str(key[0]))
+        f.write(' ')
+        f.write(str(key[1]))
+        f.write(' ')
+        f.write(edge_costs[key][0][1])
+        point = edge_costs[key][1]
+        f.write(' ' + str(point[0]) + ' ' + str(point[1]) + ' ' + str(point[2]))
+        f.write('\n')
+    f.close()
+
+    f = open('Vertices.txt', 'w')
+    for i in vertices:
+        f.write(str(i[0]) + ' ' + str(i[1]) + ' ' + str(i[2]) + '\n')
+    f.close()
 
 if __name__ == '__main__':
     main()
