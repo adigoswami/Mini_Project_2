@@ -1,0 +1,8 @@
+Problem Instance : 4br17.gtsp
+Vertices         : 260
+Sets             : 13
+Comment          : To avoid ~0.5sec startup time, use the Julia REPL
+Host Computer    : m17
+Solver Time      : 0.81 sec
+Tour Cost        : 3324
+Tour             : [3, 23, 45, 128, 159, 170, 192, 213, 244, 235, 116, 97, 70]
